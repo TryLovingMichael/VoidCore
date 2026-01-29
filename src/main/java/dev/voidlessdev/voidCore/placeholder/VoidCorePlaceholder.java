@@ -80,11 +80,35 @@ public class VoidCorePlaceholder extends PlaceholderExpansion {
             return team != null ? team.getColor() : "";
         }
 
-        // %void_team_colored% - Returns the team name with its hex color applied
+        // %void_team_colored% - Returns team name with legacy hex format (most compatible)
         if (params.equalsIgnoreCase("team_colored")) {
             Team team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
             if (team != null) {
-                return "<" + team.getColor() + ">" + team.getName();
+                // Use &x format for legacy hex colors (works with most plugins)
+                String hexColor = team.getColor().replace("#", "");
+                StringBuilder colorCode = new StringBuilder("&x");
+                for (char c : hexColor.toCharArray()) {
+                    colorCode.append("&").append(c);
+                }
+                return colorCode + team.getName();
+            }
+            return "";
+        }
+
+        // %void_team_colored_mini% - Returns team name with MiniMessage format
+        if (params.equalsIgnoreCase("team_colored_mini")) {
+            Team team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+            if (team != null) {
+                return "<color:" + team.getColor() + ">" + team.getName() + "</color>";
+            }
+            return "";
+        }
+
+        // %void_team_colored_hex% - Returns team name with &#RRGGBB format
+        if (params.equalsIgnoreCase("team_colored_hex")) {
+            Team team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+            if (team != null) {
+                return "&" + team.getColor() + team.getName();
             }
             return "";
         }
