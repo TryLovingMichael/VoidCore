@@ -9,6 +9,7 @@ public class Team {
     private final Set<UUID> members;
     private final Set<UUID> pendingInvites;
     private final long createdAt;
+    private String color; // Hex color code (e.g., "#FF5555" or legacy codes like "&c")
 
     public Team(String name, UUID owner) {
         this.id = UUID.randomUUID();
@@ -18,15 +19,17 @@ public class Team {
         this.members.add(owner);
         this.pendingInvites = new HashSet<>();
         this.createdAt = System.currentTimeMillis();
+        this.color = "#FFFFFF"; // Default white
     }
 
-    public Team(UUID id, String name, UUID owner, Set<UUID> members, Set<UUID> pendingInvites, long createdAt) {
+    public Team(UUID id, String name, UUID owner, Set<UUID> members, Set<UUID> pendingInvites, long createdAt, String color) {
         this.id = id;
         this.name = name;
         this.owner = owner;
         this.members = members;
         this.pendingInvites = pendingInvites;
         this.createdAt = createdAt;
+        this.color = color != null ? color : "#FFFFFF";
     }
 
     public UUID getId() {
@@ -91,6 +94,14 @@ public class Team {
 
     public int getMemberCount() {
         return members.size();
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 }
 

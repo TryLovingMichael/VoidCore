@@ -164,6 +164,7 @@ public class TeamManager {
                 String name = config.getString(key + ".name");
                 UUID owner = UUID.fromString(config.getString(key + ".owner"));
                 long createdAt = config.getLong(key + ".createdAt");
+                String color = config.getString(key + ".color", "#FFFFFF");
 
                 Set<UUID> members = config.getStringList(key + ".members").stream()
                         .map(UUID::fromString)
@@ -173,7 +174,7 @@ public class TeamManager {
                         .map(UUID::fromString)
                         .collect(Collectors.toSet());
 
-                Team team = new Team(id, name, owner, members, pendingInvites, createdAt);
+                Team team = new Team(id, name, owner, members, pendingInvites, createdAt, color);
                 teams.put(id, team);
 
                 for (UUID member : members) {
@@ -196,6 +197,7 @@ public class TeamManager {
             config.set(key + ".name", team.getName());
             config.set(key + ".owner", team.getOwner().toString());
             config.set(key + ".createdAt", team.getCreatedAt());
+            config.set(key + ".color", team.getColor());
             config.set(key + ".members", team.getMembers().stream()
                     .map(UUID::toString)
                     .collect(Collectors.toList()));

@@ -49,6 +49,8 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             case "deny" -> handleDeny(player, args);
             case "info" -> handleInfo(player, args);
             case "list" -> handleList(player);
+            case "color", "colour" -> handleColor(player, args);
+            case "colors", "colours" -> handleColorList(player);
             default -> sendHelp(player);
         }
 
@@ -348,8 +350,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         }
 
         player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+
+        net.kyori.adventure.text.format.TextColor teamColor = ColorUtil.hexToTextColor(team.getColor());
         player.sendMessage(Component.text("Team: ", NamedTextColor.YELLOW)
-                .append(Component.text(team.getName(), NamedTextColor.GOLD, TextDecoration.BOLD)));
+                .append(Component.text(team.getName(), teamColor, TextDecoration.BOLD)));
+
+        player.sendMessage(Component.text("Color: ", NamedTextColor.YELLOW)
+                .append(Component.text("■ ", teamColor))
+                .append(Component.text(team.getColor(), NamedTextColor.GRAY)));
 
         Player owner = Bukkit.getPlayer(team.getOwner());
         String ownerName = owner != null ? owner.getName() : "Unknown";
@@ -384,9 +392,10 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         for (Team team : teams) {
             Player owner = Bukkit.getPlayer(team.getOwner());
             String ownerName = owner != null ? owner.getName() : "Unknown";
+            net.kyori.adventure.text.format.TextColor teamColor = ColorUtil.hexToTextColor(team.getColor());
 
             player.sendMessage(Component.text("• ", NamedTextColor.DARK_GRAY)
-                    .append(Component.text(team.getName(), NamedTextColor.GOLD, TextDecoration.BOLD))
+                    .append(Component.text(team.getName(), teamColor, TextDecoration.BOLD))
                     .append(Component.text(" - ", NamedTextColor.GRAY))
                     .append(Component.text(team.getMemberCount() + " members", NamedTextColor.YELLOW))
                     .append(Component.text(" (Owner: ", NamedTextColor.GRAY))
@@ -394,6 +403,111 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                     .append(Component.text(")", NamedTextColor.GRAY)));
         }
 
+        player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+    }
+
+    private void handleColor(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage(Component.text("Usage: /team color <color|hex>", NamedTextColor.RED));
+            player.sendMessage(Component.text("Examples:", NamedTextColor.YELLOW));
+            player.sendMessage(Component.text("  /team color red", NamedTextColor.GRAY));
+            player.sendMessage(Component.text("  /team color #FF5555", NamedTextColor.GRAY));
+            player.sendMessage(Component.text("Use /team colors to see all available colors", NamedTextColor.GRAY));
+            return;
+        }
+
+        Team team = teamManager.getPlayerTeam(player.getUniqueId());
+
+        if (team == null) {
+            player.sendMessage(Component.text("You are not in a team!", NamedTextColor.RED));
+            return;
+        }
+
+        if (!team.isOwner(player.getUniqueId())) {
+            player.sendMessage(Component.text("Only the team owner can change the team color!", NamedTextColor.RED));
+            return;
+        }
+
+        String colorInput = args[1];
+        String parsedColor = ColorUtil.parseColor(colorInput);
+
+        if (parsedColor == null) {
+            player.sendMessage(Component.text("Invalid color! Use /team colors to see available colors.", NamedTextColor.RED));
+            player.sendMessage(Component.text("You can use named colors (red, blue, etc.) or hex codes (#FF5555)", NamedTextColor.YELLOW));
+            return;
+        }
+
+        team.setColor(parsedColor);
+        teamManager.saveTeams();
+
+        net.kyori.adventure.text.format.TextColor textColor = ColorUtil.hexToTextColor(parsedColor);
+
+        player.sendMessage(Component.text("Team color updated to: ", NamedTextColor.GREEN)
+                .append(Component.text(team.getName(), textColor, TextDecoration.BOLD))
+                .append(Component.text(" (" + parsedColor + ")", NamedTextColor.GRAY)));
+
+        // Notify all team members
+        for (UUID memberId : team.getMembers()) {
+            if (!memberId.equals(player.getUniqueId())) {
+                Player member = Bukkit.getPlayer(memberId);
+                if (member != null && member.isOnline()) {
+                    member.sendMessage(Component.text("Your team color has been changed to: ", NamedTextColor.YELLOW)
+                            .append(Component.text(team.getName(), textColor, TextDecoration.BOLD)));
+                }
+            }
+        }
+    }
+
+    private void handleColorList(Player player) {
+        player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+        player.sendMessage(Component.text("Available Team Colors", NamedTextColor.YELLOW, TextDecoration.BOLD));
+        player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+        player.sendMessage(Component.text("You can use any of these color names or hex codes:", NamedTextColor.GRAY));
+        player.sendMessage(Component.text(""));
+
+        // Display named colors in a nice format
+        player.sendMessage(Component.text("● ", ColorUtil.hexToTextColor("#FF5555"))
+                .append(Component.text("red ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#FFAA00")))
+                .append(Component.text("gold/orange ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#FFFF55")))
+                .append(Component.text("yellow", NamedTextColor.GRAY)));
+
+        player.sendMessage(Component.text("● ", ColorUtil.hexToTextColor("#55FF55"))
+                .append(Component.text("green/lime ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#00AA00")))
+                .append(Component.text("dark_green ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#55FFFF")))
+                .append(Component.text("aqua/cyan", NamedTextColor.GRAY)));
+
+        player.sendMessage(Component.text("● ", ColorUtil.hexToTextColor("#5555FF"))
+                .append(Component.text("blue ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#0000AA")))
+                .append(Component.text("dark_blue ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#00AAAA")))
+                .append(Component.text("dark_aqua", NamedTextColor.GRAY)));
+
+        player.sendMessage(Component.text("● ", ColorUtil.hexToTextColor("#FF55FF"))
+                .append(Component.text("light_purple/pink ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#AA00AA")))
+                .append(Component.text("dark_purple/purple", NamedTextColor.GRAY)));
+
+        player.sendMessage(Component.text("● ", ColorUtil.hexToTextColor("#FFFFFF"))
+                .append(Component.text("white ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#AAAAAA")))
+                .append(Component.text("gray ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#555555")))
+                .append(Component.text("dark_gray", NamedTextColor.GRAY)));
+
+        player.sendMessage(Component.text("● ", ColorUtil.hexToTextColor("#AA0000"))
+                .append(Component.text("dark_red ", NamedTextColor.GRAY))
+                .append(Component.text("● ", ColorUtil.hexToTextColor("#000000")))
+                .append(Component.text("black", NamedTextColor.WHITE)));
+
+        player.sendMessage(Component.text(""));
+        player.sendMessage(Component.text("Or use any hex code: ", NamedTextColor.YELLOW)
+                .append(Component.text("#FF5555, #00FF00, etc.", NamedTextColor.GRAY)));
+        player.sendMessage(Component.text("Example: /team color red", NamedTextColor.GREEN));
         player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
     }
 
@@ -419,6 +533,10 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 .append(Component.text(" - View team info", NamedTextColor.GRAY)));
         player.sendMessage(Component.text("/team list", NamedTextColor.GREEN)
                 .append(Component.text(" - List all teams", NamedTextColor.GRAY)));
+        player.sendMessage(Component.text("/team color <color>", NamedTextColor.GREEN)
+                .append(Component.text(" - Set team color", NamedTextColor.GRAY)));
+        player.sendMessage(Component.text("/team colors", NamedTextColor.GREEN)
+                .append(Component.text(" - View available colors", NamedTextColor.GRAY)));
         player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
     }
 
@@ -430,7 +548,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 1) {
-            return Arrays.asList("create", "disband", "invite", "kick", "leave", "accept", "deny", "info", "list")
+            return Arrays.asList("create", "disband", "invite", "kick", "leave", "accept", "deny", "info", "list", "color", "colors")
                     .stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
@@ -455,6 +573,12 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                     return teamManager.getAllTeams().stream()
                             .map(Team::getName)
                             .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                            .collect(Collectors.toList());
+                }
+                case "color", "colour" -> {
+                    return ColorUtil.getNamedColors().keySet().stream()
+                            .filter(color -> color.toLowerCase().startsWith(args[1].toLowerCase()))
+                            .sorted()
                             .collect(Collectors.toList());
                 }
             }

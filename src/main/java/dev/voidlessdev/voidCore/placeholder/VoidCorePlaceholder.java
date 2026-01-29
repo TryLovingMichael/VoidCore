@@ -74,6 +74,21 @@ public class VoidCorePlaceholder extends PlaceholderExpansion {
             return team != null && team.isOwner(player.getUniqueId()) ? "true" : "false";
         }
 
+        // %void_team_color%
+        if (params.equalsIgnoreCase("team_color")) {
+            Team team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+            return team != null ? team.getColor() : "";
+        }
+
+        // %void_team_colored% - Returns the team name with its hex color applied
+        if (params.equalsIgnoreCase("team_colored")) {
+            Team team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+            if (team != null) {
+                return "<" + team.getColor() + ">" + team.getName();
+            }
+            return "";
+        }
+
         return null;
     }
 }

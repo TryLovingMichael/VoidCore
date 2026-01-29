@@ -8,5 +8,5 @@ softdepend: [Vault, PlaceholderAPI]
 commands:
   team:
     description: Manage your team
-    usage: /<command> [create|disband|invite|kick|leave|info|list|accept|deny]
+    usage: /<command> [create|disband|invite|kick|leave|info|list|accept|deny|color|colors]
     aliases: [t]
