@@ -1,0 +1,12 @@
+name: VoidCore
+version: '1.0.0'
+main: dev.voidlessdev.voidCore.VoidCore
+api-version: '1.21'
+prefix: [ VA ]
+softdepend: [Vault, PlaceholderAPI]
+
+commands:
+  team:
+    description: Manage your team
+    usage: /<command> [create|disband|invite|kick|leave|info|list|accept|deny]
+    aliases: [t]
