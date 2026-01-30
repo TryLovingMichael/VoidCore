@@ -174,7 +174,23 @@ public class TeamManager {
                         .map(UUID::fromString)
                         .collect(Collectors.toSet());
 
-                Team team = new Team(id, name, owner, members, pendingInvites, createdAt, color);
+                // Load home location if it exists
+                org.bukkit.Location homeLocation = null;
+                if (config.contains(key + ".home")) {
+                    String worldName = config.getString(key + ".home.world");
+                    double x = config.getDouble(key + ".home.x");
+                    double y = config.getDouble(key + ".home.y");
+                    double z = config.getDouble(key + ".home.z");
+                    float yaw = (float) config.getDouble(key + ".home.yaw");
+                    float pitch = (float) config.getDouble(key + ".home.pitch");
+
+                    org.bukkit.World world = plugin.getServer().getWorld(worldName);
+                    if (world != null) {
+                        homeLocation = new org.bukkit.Location(world, x, y, z, yaw, pitch);
+                    }
+                }
+
+                Team team = new Team(id, name, owner, members, pendingInvites, createdAt, color, homeLocation);
                 teams.put(id, team);
 
                 for (UUID member : members) {
@@ -204,6 +220,17 @@ public class TeamManager {
             config.set(key + ".pendingInvites", team.getPendingInvites().stream()
                     .map(UUID::toString)
                     .collect(Collectors.toList()));
+
+            // Save home location if it exists
+            if (team.hasHome()) {
+                org.bukkit.Location home = team.getHomeLocation();
+                config.set(key + ".home.world", home.getWorld().getName());
+                config.set(key + ".home.x", home.getX());
+                config.set(key + ".home.y", home.getY());
+                config.set(key + ".home.z", home.getZ());
+                config.set(key + ".home.yaw", home.getYaw());
+                config.set(key + ".home.pitch", home.getPitch());
+            }
         }
 
         try {

@@ -5,13 +5,13 @@ import dev.voidlessdev.voidCore.pearl.PearlCommand;
 import dev.voidlessdev.voidCore.pearl.PearlCooldownListener;
 import dev.voidlessdev.voidCore.pearl.PearlCooldownManager;
 import dev.voidlessdev.voidCore.placeholder.VoidCorePlaceholder;
-import dev.voidlessdev.voidCore.team.TeamCommand;
-import dev.voidlessdev.voidCore.team.TeamManager;
+import dev.voidlessdev.voidCore.team.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class VoidCore extends JavaPlugin {
     private TeamManager teamManager;
+    private TeamChatManager teamChatManager;
     private PearlCooldownManager pearlCooldownManager;
 
     @Override
@@ -21,12 +21,17 @@ public final class VoidCore extends JavaPlugin {
 
         // Initialize managers
         teamManager = new TeamManager(this);
+        teamChatManager = new TeamChatManager(this, teamManager);
         pearlCooldownManager = new PearlCooldownManager(this);
 
         // Register team commands
-        TeamCommand teamCommand = new TeamCommand(this, teamManager);
+        TeamCommand teamCommand = new TeamCommand(this, teamManager, teamChatManager);
         getCommand("team").setExecutor(teamCommand);
         getCommand("team").setTabCompleter(teamCommand);
+
+        // Register team chat command
+        TeamChatCommand teamChatCommand = new TeamChatCommand(teamManager, teamChatManager);
+        getCommand("tc").setExecutor(teamChatCommand);
 
         // Register pearl commands
         PearlCommand pearlCommand = new PearlCommand(pearlCooldownManager);
@@ -39,6 +44,7 @@ public final class VoidCore extends JavaPlugin {
 
         // Register listeners
         getServer().getPluginManager().registerEvents(new PearlCooldownListener(pearlCooldownManager), this);
+        getServer().getPluginManager().registerEvents(new TeamChatListener(teamChatManager), this);
 
         // Hook into PlaceholderAPI if available
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -71,6 +77,10 @@ public final class VoidCore extends JavaPlugin {
 
     public TeamManager getTeamManager() {
         return teamManager;
+    }
+
+    public TeamChatManager getTeamChatManager() {
+        return teamChatManager;
     }
 
     public PearlCooldownManager getPearlCooldownManager() {

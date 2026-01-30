@@ -16,3 +16,49 @@ pearl-cooldown:
   # Bypass permission
   bypass-permission: "voidcore.pearl.bypass"
 
+# Team Chat Settings
+team-chat:
+  # Format for team chat messages
+  # Placeholders: {player} - sender name, {message} - message content
+  format: "&6[TEAM] &r{player}&7: &f{message}"
+
+  # Format for social spy (admin viewing team chats)
+  # Placeholders: {team} - team name, {player} - sender name, {message} - message content
+  spy-format: "&8[SPY] &6[{team}] &r{player}&7: &f{message}"
+
+  # Message when player tries to use team chat without being in a team
+  not-in-team-message: "&cYou are not in a team!"
+
+# Team Home Settings
+team-home:
+  # Enable/disable team homes
+  enabled: true
+
+  # EXP cost to teleport to team home (in levels)
+  # Set to 0 to make it free
+  teleport-cost: 5
+
+  # Teleport delay in seconds (time before teleporting)
+  # Set to 0 for instant teleport
+  teleport-delay: 3
+
+  # Cancel teleport if player moves during delay
+  cancel-on-move: true
+
+  # Cancel teleport if player takes damage during delay
+  cancel-on-damage: true
+
+  # Messages
+  messages:
+    home-set: "&aTeam home set to your current location!"
+    home-removed: "&cTeam home has been removed!"
+    no-home: "&cYour team doesn't have a home set!"
+    not-owner: "&cOnly the team owner can set the team home!"
+    teleporting: "&aTeleporting to team home in {delay} seconds..."
+    teleport-success: "&aTeleported to team home!"
+    teleport-cancelled-move: "&cTeleport cancelled - you moved!"
+    teleport-cancelled-damage: "&cTeleport cancelled - you took damage!"
+    not-enough-exp: "&cYou need {cost} levels to teleport! You have {current} levels."
+    exp-cost-deducted: "&eSpent {cost} levels to teleport."
+
+

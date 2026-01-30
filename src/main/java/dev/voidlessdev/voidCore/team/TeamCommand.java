@@ -19,10 +19,12 @@ import java.util.stream.Collectors;
 public class TeamCommand implements CommandExecutor, TabCompleter {
     private final VoidCore plugin;
     private final TeamManager teamManager;
+    private final TeamChatManager chatManager;
 
-    public TeamCommand(VoidCore plugin, TeamManager teamManager) {
+    public TeamCommand(VoidCore plugin, TeamManager teamManager, TeamChatManager chatManager) {
         this.plugin = plugin;
         this.teamManager = teamManager;
+        this.chatManager = chatManager;
     }
 
     @Override
@@ -51,6 +53,11 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             case "list" -> handleList(player);
             case "color", "colour" -> handleColor(player, args);
             case "colors", "colours" -> handleColorList(player);
+            case "chat", "c", "tc" -> handleTeamChat(player, args);
+            case "socialspy", "spy" -> handleSocialSpy(player);
+            case "sethome" -> handleSetHome(player);
+            case "home" -> handleHome(player);
+            case "delhome", "removehome" -> handleDelHome(player);
             default -> sendHelp(player);
         }
 
@@ -511,6 +518,206 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
     }
 
+    private void handleTeamChat(Player player, String[] args) {
+        Team team = teamManager.getPlayerTeam(player.getUniqueId());
+
+        if (team == null) {
+            player.sendMessage(Component.text("You are not in a team!", NamedTextColor.RED));
+            return;
+        }
+
+        // If args provided, send a quick message
+        if (args.length > 1) {
+            String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+            chatManager.sendTeamMessage(player, message);
+            return;
+        }
+
+        // Otherwise toggle team chat mode
+        chatManager.toggleTeamChatMode(player.getUniqueId());
+        boolean inMode = chatManager.isInTeamChatMode(player.getUniqueId());
+
+        if (inMode) {
+            player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+            player.sendMessage(Component.text("Team Chat Mode: ", NamedTextColor.YELLOW)
+                    .append(Component.text("ENABLED", NamedTextColor.GREEN, TextDecoration.BOLD)));
+            player.sendMessage(Component.text("All your messages will now be sent to your team!", NamedTextColor.GRAY));
+            player.sendMessage(Component.text("Use /team chat again to toggle off", NamedTextColor.GRAY));
+            player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+        } else {
+            player.sendMessage(Component.text("Team Chat Mode: ", NamedTextColor.YELLOW)
+                    .append(Component.text("DISABLED", NamedTextColor.RED, TextDecoration.BOLD)));
+            player.sendMessage(Component.text("Your messages will now be sent to global chat", NamedTextColor.GRAY));
+        }
+    }
+
+    private void handleSocialSpy(Player player) {
+        if (!player.hasPermission("voidcore.team.socialspy")) {
+            player.sendMessage(Component.text("You don't have permission to use this command!", NamedTextColor.RED));
+            return;
+        }
+
+        chatManager.toggleSocialSpy(player.getUniqueId());
+        boolean enabled = chatManager.hasSocialSpyEnabled(player.getUniqueId());
+
+        if (enabled) {
+            player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+            player.sendMessage(Component.text("Team Social Spy: ", NamedTextColor.YELLOW)
+                    .append(Component.text("ENABLED", NamedTextColor.GREEN, TextDecoration.BOLD)));
+            player.sendMessage(Component.text("You can now see all team chat messages!", NamedTextColor.GRAY));
+            player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
+        } else {
+            player.sendMessage(Component.text("Team Social Spy: ", NamedTextColor.YELLOW)
+                    .append(Component.text("DISABLED", NamedTextColor.RED, TextDecoration.BOLD)));
+        }
+    }
+
+    private void handleSetHome(Player player) {
+        Team team = teamManager.getPlayerTeam(player.getUniqueId());
+
+        if (team == null) {
+            player.sendMessage(Component.text(getMessage("team-home.messages.not-in-team", "You are not in a team!"), NamedTextColor.RED));
+            return;
+        }
+
+        if (!team.isOwner(player.getUniqueId())) {
+            player.sendMessage(Component.text(getMessage("team-home.messages.not-owner", "Only the team owner can set the team home!"), NamedTextColor.RED));
+            return;
+        }
+
+        team.setHomeLocation(player.getLocation());
+        teamManager.saveTeams();
+
+        player.sendMessage(Component.text(getMessage("team-home.messages.home-set", "Team home set to your current location!"), NamedTextColor.GREEN));
+    }
+
+    private void handleDelHome(Player player) {
+        Team team = teamManager.getPlayerTeam(player.getUniqueId());
+
+        if (team == null) {
+            player.sendMessage(Component.text(getMessage("team-home.messages.not-in-team", "You are not in a team!"), NamedTextColor.RED));
+            return;
+        }
+
+        if (!team.isOwner(player.getUniqueId())) {
+            player.sendMessage(Component.text(getMessage("team-home.messages.not-owner", "Only the team owner can remove the team home!"), NamedTextColor.RED));
+            return;
+        }
+
+        team.setHomeLocation(null);
+        teamManager.saveTeams();
+
+        player.sendMessage(Component.text(getMessage("team-home.messages.home-removed", "Team home has been removed!"), NamedTextColor.YELLOW));
+    }
+
+    private void handleHome(Player player) {
+        if (!plugin.getConfig().getBoolean("team-home.enabled", true)) {
+            player.sendMessage(Component.text("Team homes are currently disabled!", NamedTextColor.RED));
+            return;
+        }
+
+        Team team = teamManager.getPlayerTeam(player.getUniqueId());
+
+        if (team == null) {
+            player.sendMessage(Component.text(getMessage("team-home.messages.not-in-team", "You are not in a team!"), NamedTextColor.RED));
+            return;
+        }
+
+        if (!team.hasHome()) {
+            player.sendMessage(Component.text(getMessage("team-home.messages.no-home", "Your team doesn't have a home set!"), NamedTextColor.RED));
+            return;
+        }
+
+        int cost = plugin.getConfig().getInt("team-home.teleport-cost", 5);
+        int delay = plugin.getConfig().getInt("team-home.teleport-delay", 3);
+
+        // Check EXP levels
+        if (cost > 0 && player.getLevel() < cost) {
+            String message = getMessage("team-home.messages.not-enough-exp", "You need {cost} levels to teleport! You have {current} levels.")
+                    .replace("{cost}", String.valueOf(cost))
+                    .replace("{current}", String.valueOf(player.getLevel()));
+            player.sendMessage(Component.text(message, NamedTextColor.RED));
+            return;
+        }
+
+        org.bukkit.Location destination = team.getHomeLocation();
+
+        if (delay > 0) {
+            // Send teleporting message
+            String delayMessage = getMessage("team-home.messages.teleporting", "Teleporting to team home in {delay} seconds...")
+                    .replace("{delay}", String.valueOf(delay));
+            player.sendMessage(Component.text(delayMessage, NamedTextColor.YELLOW));
+
+            // Store original location for movement check
+            final org.bukkit.Location originalLocation = player.getLocation().clone();
+            final boolean cancelOnMove = plugin.getConfig().getBoolean("team-home.cancel-on-move", true);
+            final boolean cancelOnDamage = plugin.getConfig().getBoolean("team-home.cancel-on-damage", true);
+
+            // Schedule teleport
+            new org.bukkit.scheduler.BukkitRunnable() {
+                int countdown = delay;
+
+                @Override
+                public void run() {
+                    if (!player.isOnline()) {
+                        cancel();
+                        return;
+                    }
+
+                    // Check for movement
+                    if (cancelOnMove && player.getLocation().distance(originalLocation) > 0.5) {
+                        player.sendMessage(Component.text(getMessage("team-home.messages.teleport-cancelled-move", "Teleport cancelled - you moved!"), NamedTextColor.RED));
+                        cancel();
+                        return;
+                    }
+
+                    countdown--;
+
+                    if (countdown <= 0) {
+                        // Perform teleport
+                        performTeleport(player, destination, cost);
+                        cancel();
+                    }
+                }
+            }.runTaskTimer(plugin, 20L, 20L); // Run every second
+
+            // Register damage listener
+            if (cancelOnDamage) {
+                new org.bukkit.event.Listener() {
+                    @org.bukkit.event.EventHandler
+                    public void onDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+                        if (event.getEntity().equals(player)) {
+                            player.sendMessage(Component.text(getMessage("team-home.messages.teleport-cancelled-damage", "Teleport cancelled - you took damage!"), NamedTextColor.RED));
+                            org.bukkit.event.HandlerList.unregisterAll(this);
+                        }
+                    }
+                };
+            }
+        } else {
+            // Instant teleport
+            performTeleport(player, destination, cost);
+        }
+    }
+
+    private void performTeleport(Player player, org.bukkit.Location destination, int cost) {
+        // Deduct EXP
+        if (cost > 0) {
+            player.setLevel(player.getLevel() - cost);
+            String costMessage = getMessage("team-home.messages.exp-cost-deducted", "Spent {cost} levels to teleport.")
+                    .replace("{cost}", String.valueOf(cost));
+            player.sendMessage(Component.text(costMessage, NamedTextColor.YELLOW));
+        }
+
+        // Teleport
+        player.teleport(destination);
+        player.sendMessage(Component.text(getMessage("team-home.messages.teleport-success", "Teleported to team home!"), NamedTextColor.GREEN));
+    }
+
+    private String getMessage(String path, String defaultMessage) {
+        String message = plugin.getConfig().getString(path, defaultMessage);
+        return message.replace("&", "§");
+    }
+
     private void sendHelp(Player player) {
         player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
         player.sendMessage(Component.text("Team Commands", NamedTextColor.YELLOW, TextDecoration.BOLD));
@@ -537,6 +744,20 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 .append(Component.text(" - Set team color", NamedTextColor.GRAY)));
         player.sendMessage(Component.text("/team colors", NamedTextColor.GREEN)
                 .append(Component.text(" - View available colors", NamedTextColor.GRAY)));
+        player.sendMessage(Component.text("/team chat [message]", NamedTextColor.GREEN)
+                .append(Component.text(" - Toggle team chat or send message", NamedTextColor.GRAY)));
+        player.sendMessage(Component.text("/team sethome", NamedTextColor.GREEN)
+                .append(Component.text(" - Set team home (Owner)", NamedTextColor.GRAY)));
+        player.sendMessage(Component.text("/team home", NamedTextColor.GREEN)
+                .append(Component.text(" - Teleport to team home", NamedTextColor.GRAY)));
+        player.sendMessage(Component.text("/team delhome", NamedTextColor.GREEN)
+                .append(Component.text(" - Remove team home (Owner)", NamedTextColor.GRAY)));
+
+        if (player.hasPermission("voidcore.team.socialspy")) {
+            player.sendMessage(Component.text("/team socialspy", NamedTextColor.AQUA)
+                    .append(Component.text(" - Toggle team chat spy (Admin)", NamedTextColor.DARK_GRAY)));
+        }
+
         player.sendMessage(Component.text("═══════════════════════════════", NamedTextColor.GOLD));
     }
 
@@ -548,8 +769,15 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 1) {
-            return Arrays.asList("create", "disband", "invite", "kick", "leave", "accept", "deny", "info", "list", "color", "colors")
-                    .stream()
+            List<String> commands = new ArrayList<>(Arrays.asList("create", "disband", "invite", "kick", "leave",
+                    "accept", "deny", "info", "list", "color", "colors", "chat", "tc", "sethome", "home", "delhome"));
+
+            if (player.hasPermission("voidcore.team.socialspy")) {
+                commands.add("socialspy");
+                commands.add("spy");
+            }
+
+            return commands.stream()
                     .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         }

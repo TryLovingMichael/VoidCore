@@ -1,5 +1,8 @@
 package dev.voidlessdev.voidCore.team;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+
 import java.util.*;
 
 public class Team {
@@ -10,6 +13,7 @@ public class Team {
     private final Set<UUID> pendingInvites;
     private final long createdAt;
     private String color; // Hex color code (e.g., "#FF5555" or legacy codes like "&c")
+    private Location homeLocation; // Team home location
 
     public Team(String name, UUID owner) {
         this.id = UUID.randomUUID();
@@ -20,9 +24,10 @@ public class Team {
         this.pendingInvites = new HashSet<>();
         this.createdAt = System.currentTimeMillis();
         this.color = "#FFFFFF"; // Default white
+        this.homeLocation = null;
     }
 
-    public Team(UUID id, String name, UUID owner, Set<UUID> members, Set<UUID> pendingInvites, long createdAt, String color) {
+    public Team(UUID id, String name, UUID owner, Set<UUID> members, Set<UUID> pendingInvites, long createdAt, String color, Location homeLocation) {
         this.id = id;
         this.name = name;
         this.owner = owner;
@@ -30,6 +35,7 @@ public class Team {
         this.pendingInvites = pendingInvites;
         this.createdAt = createdAt;
         this.color = color != null ? color : "#FFFFFF";
+        this.homeLocation = homeLocation;
     }
 
     public UUID getId() {
@@ -102,6 +108,18 @@ public class Team {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public Location getHomeLocation() {
+        return homeLocation;
+    }
+
+    public void setHomeLocation(Location location) {
+        this.homeLocation = location;
+    }
+
+    public boolean hasHome() {
+        return homeLocation != null;
     }
 }
 

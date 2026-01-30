@@ -8,8 +8,12 @@ softdepend: [Vault, PlaceholderAPI]
 commands:
   team:
     description: Manage your team
-    usage: /<command> [create|disband|invite|kick|leave|info|list|accept|deny|color|colors]
+    usage: /<command> [create|disband|invite|kick|leave|info|list|accept|deny|color|colors|chat|socialspy|sethome|home|delhome]
     aliases: [t]
+  tc:
+    description: Send a message to your team
+    usage: /<command> <message>
+    aliases: [teamchat]
   pearl:
     description: Manage ender pearl cooldowns
     usage: /<command> [toggle|setcooldown|check|clear|info]
@@ -29,4 +33,7 @@ permissions:
   voidcore.pearl.bypass:
     description: Bypass pearl cooldown
     default: false
+  voidcore.team.socialspy:
+    description: Allows viewing all team chat messages
+    default: op
 
