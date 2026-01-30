@@ -1,8 +1,8 @@
-# Team Color Placeholder Guide
+# VoidCore - Complete Guide
 
-## 🎨 Available Color Placeholders
+## 🎨 Team Color Placeholders
 
-The plugin now provides **3 different color format placeholders** to ensure compatibility with all chat plugins:
+The plugin provides **3 different color format placeholders** to ensure compatibility with all chat plugins:
 
 ### 1. `%void_team_colored%` - Legacy Hex Format (RECOMMENDED)
 
@@ -303,3 +303,308 @@ This uses the legacy hex format which is supported by virtually all modern chat 
 
 The legacy hex format (`&x&R&R&G&G&B&B`) is the most reliable format for Bukkit/Spigot/Paper servers! 🎨
 
+---
+
+---
+
+# ⚡ Pearl Cooldown System
+
+## Overview
+The pearl cooldown system prevents ender pearl spam by applying configurable cooldowns to pearl usage.
+
+## 🎮 Pearl Cooldown Placeholders
+
+### `%void_pearl_cooldown%` - Remaining Cooldown Time
+
+**Returns:** Seconds remaining on cooldown (0 if no cooldown)
+
+**Example Output:** `15` (seconds)
+
+**Use in scoreboard/tab:**
+```yaml
+# Scoreboard example
+- '&cPearl: %void_pearl_cooldown%s'
+```
+
+---
+
+### `%void_pearl_ready%` - Pearl Ready Status
+
+**Returns:** `true` if pearl is ready, `false` if on cooldown
+
+**Example Output:** `true` or `false`
+
+**Use for conditional display:**
+```yaml
+# Show different messages based on status
+- '%void_pearl_ready% == true ? &aPearl Ready : &cOn Cooldown'
+```
+
+---
+
+### `%void_pearl_cooldown_enabled%` - System Status
+
+**Returns:** `true` if cooldown system is enabled, `false` if disabled
+
+**Example Output:** `true` or `false`
+
+---
+
+## 📜 All Available Placeholders
+
+### Team Placeholders
+| Placeholder | Description | Example Output |
+|-------------|-------------|----------------|
+| `%void_team%` | Team name (no color) | `Dream Team` |
+| `%void_team_colored%` | Team name with legacy hex color | `&x&F&F&5&5&5&5Dream Team` |
+| `%void_team_colored_hex%` | Team name with &#RRGGBB format | `&#FF5555Dream Team` |
+| `%void_team_colored_mini%` | Team name with MiniMessage format | `<color:#FF5555>Dream Team</color>` |
+| `%void_team_color%` | Just the hex code | `#FF5555` |
+| `%void_team_owner%` | Team owner's name | `Steve` |
+| `%void_team_members%` | Number of team members | `5` |
+| `%void_has_team%` | Whether player has a team | `true` or `false` |
+| `%void_is_team_owner%` | Whether player is team owner | `true` or `false` |
+
+### Pearl Cooldown Placeholders
+| Placeholder | Description | Example Output |
+|-------------|-------------|----------------|
+| `%void_pearl_cooldown%` | Seconds remaining on cooldown | `15` |
+| `%void_pearl_ready%` | Is pearl ready to use | `true` or `false` |
+| `%void_pearl_cooldown_enabled%` | Is system enabled | `true` or `false` |
+
+---
+
+## ⚙️ Configuration
+
+The pearl cooldown configuration is located in `config.yml`:
+
+```yaml
+pearl-cooldown:
+  # Enable/disable pearl cooldown
+  enabled: true
+  
+  # Cooldown time in seconds
+  cooldown: 15
+  
+  # Message sent when pearl is on cooldown
+  # Placeholders: {time} - remaining time
+  cooldown-message: "&cYou must wait {time} seconds before using another ender pearl!"
+  
+  # Message sent when cooldown expires
+  ready-message: "&aYour ender pearl is ready!"
+  
+  # Show actionbar countdown
+  actionbar-enabled: true
+  
+  # Bypass permission
+  bypass-permission: "voidcore.pearl.bypass"
+```
+
+---
+
+## 🎮 Pearl Cooldown Commands
+
+### Player Commands
+| Command | Description |
+|---------|-------------|
+| `/pearl check` | Check your pearl cooldown status |
+| `/pearl info` | View pearl cooldown information |
+
+### Admin Commands (Requires `voidcore.pearl.admin`)
+| Command | Description |
+|---------|-------------|
+| `/pearl toggle` | Toggle pearl cooldown on/off |
+| `/pearl setcooldown <seconds>` | Set cooldown time in seconds |
+| `/pearl clear [player]` | Clear cooldown for a player or all players |
+
+### VoidCore Commands (Requires `voidcore.admin`)
+| Command | Description |
+|---------|-------------|
+| `/voidcore reload` | Reload configuration file |
+| `/voidcore version` | Show plugin version |
+
+**Command Aliases:**
+- `/pearl` → `/ec`, `/enderpearl`
+- `/voidcore` → `/vc`
+
+---
+
+## 🔐 Permissions
+
+### Pearl Cooldown Permissions
+| Permission | Description | Default |
+|------------|-------------|---------|
+| `voidcore.admin` | Access to all admin commands | OP |
+| `voidcore.pearl.admin` | Access to pearl admin commands | OP |
+| `voidcore.pearl.bypass` | Bypass pearl cooldown | None |
+
+---
+
+## 💡 Pearl Cooldown Usage Examples
+
+### Example 1: Setting a 10-second cooldown
+```
+/pearl setcooldown 10
+```
+
+### Example 2: Disabling pearl cooldown temporarily
+```
+/pearl toggle
+```
+
+### Example 3: Clearing all cooldowns
+```
+/pearl clear
+```
+
+### Example 4: Clearing a specific player's cooldown
+```
+/pearl clear PlayerName
+```
+
+### Example 5: Checking your cooldown
+```
+/pearl check
+```
+
+### Example 6: Reloading config after changes
+```
+/voidcore reload
+```
+
+---
+
+## 🎯 Pearl Cooldown Features
+
+### ✅ Spam Protection
+The cooldown system **prevents spam clicking bypass**. Players cannot bypass the cooldown by repeatedly clicking - the system only triggers when a pearl is actually thrown.
+
+### ✅ Actionbar Countdown
+When enabled, players see a live countdown on their action bar:
+```
+Pearl Cooldown: 15s
+Pearl Cooldown: 14s
+Pearl Cooldown: 13s
+...
+Pearl Ready!
+```
+
+### ✅ In-Game Management
+- Change cooldown duration without file editing
+- Toggle system on/off instantly
+- Clear cooldowns for specific players
+- Reload config without server restart
+
+### ✅ Bypass Permission
+Players with `voidcore.pearl.bypass` permission can use pearls without any cooldown restriction.
+
+---
+
+## 🔧 Pearl Cooldown Troubleshooting
+
+### Problem: Players can spam pearls
+
+**Solution:** This has been fixed! The system now listens to the actual pearl throw event, not just the click event.
+
+### Problem: Cooldown not applying
+
+**Solutions:**
+1. Check if pearl cooldown is enabled: `/pearl info`
+2. Make sure player doesn't have bypass permission
+3. Reload the plugin: `/voidcore reload`
+
+### Problem: Messages not showing
+
+**Solutions:**
+1. Check config.yml for message settings
+2. Ensure messages aren't empty
+3. Reload config: `/voidcore reload`
+
+### Problem: Actionbar not showing
+
+**Solutions:**
+1. Check `actionbar-enabled: true` in config.yml
+2. Make sure you're on Minecraft 1.11+
+3. Some clients may not support action bars
+
+---
+
+## 📊 Scoreboard Example
+
+Use pearl cooldown placeholders in your scoreboard:
+
+```yaml
+# Example scoreboard with DeluxeTab/AnimatedScoreboard
+lines:
+  - '&6&lYOUR SERVER'
+  - ''
+  - '&eTeam: %void_team_colored%'
+  - '&eMembers: %void_team_members%'
+  - ''
+  - '&cPearl: %void_pearl_ready% == true ? &aReady : &c%void_pearl_cooldown%s'
+  - ''
+  - '&7play.yourserver.com'
+```
+
+---
+
+## 🎪 TAB List Example
+
+Show pearl status in TAB:
+
+```yaml
+# Example TAB format
+header:
+  - '&6&lYOUR SERVER'
+  - '&7Team: %void_team_colored%'
+  
+footer:
+  - '&ePearl: %void_pearl_ready% == true ? &aReady : &cCooldown %void_pearl_cooldown%s'
+  - '&7Online: %server_online%'
+```
+
+---
+
+## ✅ Quick Start Checklist
+
+### For Pearl Cooldown:
+- [ ] Plugin installed and server restarted
+- [ ] Check config.yml for pearl cooldown settings
+- [ ] Test with `/pearl check`
+- [ ] Verify cooldown works by throwing a pearl
+- [ ] Set desired cooldown time with `/pearl setcooldown <seconds>`
+- [ ] Give bypass permission to admins if desired
+
+### For Team Colors in Chat:
+- [ ] PlaceholderAPI installed
+- [ ] Team created with `/team create <name>`
+- [ ] Team color set with `/team color <color>`
+- [ ] Placeholder added to chat format: `%void_team_colored%`
+- [ ] Chat plugin reloaded
+- [ ] Test in chat to see colored team name
+
+---
+
+## 🔄 Config Reload
+
+You can now reload the configuration without restarting:
+
+```
+/voidcore reload
+```
+
+This reloads:
+- ✅ Pearl cooldown settings
+- ✅ All config.yml values
+- ✅ Message formats
+- ✅ Cooldown duration
+
+**Note:** Teams are saved/loaded from `teams.yml` and persist automatically.
+
+---
+
+**Need help?** 
+- Test placeholders: `/papi parse me %void_team_colored%`
+- Check pearl status: `/pearl info`
+- Reload config: `/voidcore reload`
+- View version: `/voidcore version`

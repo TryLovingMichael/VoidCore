@@ -113,6 +113,30 @@ public class VoidCorePlaceholder extends PlaceholderExpansion {
             return "";
         }
 
+        // Pearl cooldown placeholders
+        // %void_pearl_cooldown% - Returns remaining cooldown in seconds
+        if (params.equalsIgnoreCase("pearl_cooldown")) {
+            if (player.isOnline() && player.getPlayer() != null) {
+                long remaining = plugin.getPearlCooldownManager().getRemainingCooldown(player.getPlayer());
+                return String.valueOf(remaining);
+            }
+            return "0";
+        }
+
+        // %void_pearl_ready% - Returns true/false if pearl is ready
+        if (params.equalsIgnoreCase("pearl_ready")) {
+            if (player.isOnline() && player.getPlayer() != null) {
+                boolean hasCooldown = plugin.getPearlCooldownManager().hasCooldown(player.getPlayer());
+                return hasCooldown ? "false" : "true";
+            }
+            return "true";
+        }
+
+        // %void_pearl_cooldown_enabled% - Returns true/false if cooldown system is enabled
+        if (params.equalsIgnoreCase("pearl_cooldown_enabled")) {
+            return plugin.getPearlCooldownManager().isEnabled() ? "true" : "false";
+        }
+
         return null;
     }
 }

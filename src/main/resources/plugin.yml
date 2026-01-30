@@ -10,3 +10,23 @@ commands:
     description: Manage your team
     usage: /<command> [create|disband|invite|kick|leave|info|list|accept|deny|color|colors]
     aliases: [t]
+  pearl:
+    description: Manage ender pearl cooldowns
+    usage: /<command> [toggle|setcooldown|check|clear|info]
+    aliases: [ec, enderpearl]
+  voidcore:
+    description: Main VoidCore command
+    usage: /<command> [reload|version]
+    aliases: [vc]
+
+permissions:
+  voidcore.admin:
+    description: Grants access to all admin commands
+    default: op
+  voidcore.pearl.admin:
+    description: Grants access to pearl cooldown admin commands
+    default: op
+  voidcore.pearl.bypass:
+    description: Bypass pearl cooldown
+    default: false
+

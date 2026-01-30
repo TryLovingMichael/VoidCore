@@ -1,0 +1,18 @@
+# VoidCore Configuration
+
+# Pearl Cooldown Settings
+pearl-cooldown:
+  # Enable/disable pearl cooldown
+  enabled: true
+  # Cooldown time in seconds
+  cooldown: 15
+  # Message sent when pearl is on cooldown
+  # Placeholders: {time} - remaining time
+  cooldown-message: "&cYou must wait {time} seconds before using another ender pearl!"
+  # Message sent when cooldown expires
+  ready-message: "&aYour ender pearl is ready!"
+  # Show actionbar countdown
+  actionbar-enabled: true
+  # Bypass permission
+  bypass-permission: "voidcore.pearl.bypass"
+
