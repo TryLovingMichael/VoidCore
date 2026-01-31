@@ -20,11 +20,13 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private final VoidCore plugin;
     private final TeamManager teamManager;
     private final TeamChatManager chatManager;
+    private final TeamHomeManager homeManager;
 
-    public TeamCommand(VoidCore plugin, TeamManager teamManager, TeamChatManager chatManager) {
+    public TeamCommand(VoidCore plugin, TeamManager teamManager, TeamChatManager chatManager, TeamHomeManager homeManager) {
         this.plugin = plugin;
         this.teamManager = teamManager;
         this.chatManager = chatManager;
+        this.homeManager = homeManager;
     }
 
     @Override
@@ -628,6 +630,15 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        // Check cooldown
+        if (homeManager.hasCooldown(player)) {
+            long remaining = homeManager.getRemainingCooldown(player);
+            String message = getMessage("team-home.messages.on-cooldown", "You must wait {time} seconds before using /team home again!")
+                    .replace("{time}", String.valueOf(remaining));
+            player.sendMessage(Component.text(message, NamedTextColor.RED));
+            return;
+        }
+
         int cost = plugin.getConfig().getInt("team-home.teleport-cost", 5);
         int delay = plugin.getConfig().getInt("team-home.teleport-delay", 3);
 
@@ -711,6 +722,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         // Teleport
         player.teleport(destination);
         player.sendMessage(Component.text(getMessage("team-home.messages.teleport-success", "Teleported to team home!"), NamedTextColor.GREEN));
+
+        // Apply cooldown
+        homeManager.applyCooldown(player);
     }
 
     private String getMessage(String path, String defaultMessage) {

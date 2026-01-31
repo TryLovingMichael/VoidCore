@@ -12,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class VoidCore extends JavaPlugin {
     private TeamManager teamManager;
     private TeamChatManager teamChatManager;
+    private TeamHomeManager teamHomeManager;
     private PearlCooldownManager pearlCooldownManager;
 
     @Override
@@ -22,10 +23,11 @@ public final class VoidCore extends JavaPlugin {
         // Initialize managers
         teamManager = new TeamManager(this);
         teamChatManager = new TeamChatManager(this, teamManager);
+        teamHomeManager = new TeamHomeManager(this);
         pearlCooldownManager = new PearlCooldownManager(this);
 
         // Register team commands
-        TeamCommand teamCommand = new TeamCommand(this, teamManager, teamChatManager);
+        TeamCommand teamCommand = new TeamCommand(this, teamManager, teamChatManager, teamHomeManager);
         getCommand("team").setExecutor(teamCommand);
         getCommand("team").setTabCompleter(teamCommand);
 
@@ -81,6 +83,10 @@ public final class VoidCore extends JavaPlugin {
 
     public TeamChatManager getTeamChatManager() {
         return teamChatManager;
+    }
+
+    public TeamHomeManager getTeamHomeManager() {
+        return teamHomeManager;
     }
 
     public PearlCooldownManager getPearlCooldownManager() {

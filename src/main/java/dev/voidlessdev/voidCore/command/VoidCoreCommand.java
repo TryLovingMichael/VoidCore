@@ -38,13 +38,20 @@ public class VoidCoreCommand implements CommandExecutor {
         }
 
         try {
+            sender.sendMessage(ChatColor.YELLOW + "Reloading VoidCore configuration...");
+
             // Reload config
             plugin.reloadConfig();
+            plugin.saveDefaultConfig();
             plugin.reloadManagers();
 
-            sender.sendMessage(ChatColor.GREEN + "VoidCore configuration has been reloaded!");
+            sender.sendMessage(ChatColor.GREEN + "✓ Configuration reloaded successfully!");
+            sender.sendMessage(ChatColor.GRAY + "  - Pearl cooldown settings updated");
+            sender.sendMessage(ChatColor.GRAY + "  - Team chat settings updated");
+            sender.sendMessage(ChatColor.GRAY + "  - Team home settings updated");
         } catch (Exception e) {
-            sender.sendMessage(ChatColor.RED + "An error occurred while reloading the configuration.");
+            sender.sendMessage(ChatColor.RED + "✗ An error occurred while reloading the configuration.");
+            sender.sendMessage(ChatColor.RED + "Check console for details.");
             plugin.getLogger().severe("Error reloading config: " + e.getMessage());
             e.printStackTrace();
         }

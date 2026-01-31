@@ -42,6 +42,10 @@ team-home:
   # Set to 0 for instant teleport
   teleport-delay: 3
 
+  # Cooldown between /team home uses (in seconds)
+  # Set to 0 to disable cooldown
+  home-cooldown: 60
+
   # Cancel teleport if player moves during delay
   cancel-on-move: true
 
@@ -54,11 +58,13 @@ team-home:
     home-removed: "&cTeam home has been removed!"
     no-home: "&cYour team doesn't have a home set!"
     not-owner: "&cOnly the team owner can set the team home!"
+    not-in-team: "&cYou are not in a team!"
     teleporting: "&aTeleporting to team home in {delay} seconds..."
     teleport-success: "&aTeleported to team home!"
     teleport-cancelled-move: "&cTeleport cancelled - you moved!"
     teleport-cancelled-damage: "&cTeleport cancelled - you took damage!"
     not-enough-exp: "&cYou need {cost} levels to teleport! You have {current} levels."
     exp-cost-deducted: "&eSpent {cost} levels to teleport."
+    on-cooldown: "&cYou must wait {time} seconds before using /team home again!"
 
 
